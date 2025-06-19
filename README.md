@@ -1,94 +1,68 @@
-# Weather-news-dashboard
-# 🌦 Weather & News Dashboard
+import requests
 
-A simple Python project that displays *current weather* and the *top 3 news headlines* for users in India.
+# Use API KEYS
+WEATHER_API_KEY = '02e6af2ce21331756fa768b8153aa386'
+NEWS_API_KEY = 'aa3040bce33a4fdca1a26bc0e7c9cdea'
 
----
+def get_weather(city):
+    # URL to get current weather
+    url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={WEATHER_API_KEY}&units=metric"
+    response = requests.get(url)
+    data = response.json()
 
-## 🔧 Features
+    #  If city is not found
+    if data.get("cod") != 200:
+        return "City not found!"
 
-- 📍 Enter any city name to fetch weather info
-- 🌡 Get temperature, humidity, and wind speed
-- 📰 View top 3 latest news headlines from India
-- 🚫 Handles errors like invalid city names or API issues
+    #  Format the weather details
+    weather = {
+        "City": data["name"],
+        "Temperature": f"{data['main']['temp']}°C",
+        "Weather": data["weather"][0]["description"].title(),
+        "Humidity": f"{data['main']['humidity']}%",
+        "Wind": f"{data['wind']['speed']} m/s"
+    }
+    return weather
 
----
+def get_news():
+    # URL to get top headlines from India
+    url = f"https://newsapi.org/v2/top-headlines?country=in&apiKey={NEWS_API_KEY}"
+    response = requests.get(url)
+    data = response.json()
 
-## 🚀 Technologies Used
+    # Check for errors in the response
+    if data.get("status") != "ok":
+        return ["Failed to fetch news."]
 
-- Python 3
-- Requests library
-- OpenWeatherMap API
-- NewsAPI.org
+    articles = data.get("articles", [])
 
----
+    # If there are no articles
+    if not articles:
+        return ["No news articles found."]
 
-## 📦 How to Run
+    # Extract top 3 headlines
+    headlines = [article['title'] for article in articles[:3]]
+    return headlines
 
-1. Install required library:
-   ```bash
-   pip install requests
-   
-2. Add your API keys inside the script:
+def main():
+    print("📍 Weather & News Dashboard")
+    city = input("Enter your city name: ")
 
-WEATHER_API_KEY = 'your_openweathermap_api_key'
-NEWS_API_KEY = 'your_newsapi_key'
+    # Fetch weather
+    print("\n🔎 Fetching weather...")
+    weather = get_weather(city)
+    if isinstance(weather, str):
+        print(weather)
+    else:
+        for key, value in weather.items():
+            print(f"{key}: {value}")
+    
+    # Fetch news
+    print("\n📰 Top News Headlines:")
+    headlines = get_news()
+    for i, title in enumerate(headlines, 1):
+        print(f"{i}. {title}")
 
-
-3. Run the Python script:
-
-python weather_news_dashboard.py
-
-
-
-
----
-
-🧪 Sample Output
-
-📍 Weather & News Dashboard
-Enter your city name: Kochi
-
-🔎 Fetching weather...
-City: Kochi
-Temperature: 30°C
-Weather: Clear Sky
-Humidity: 60%
-Wind: 3.6 m/s
-
-📰 Top News Headlines:
-1. India launches new space mission
-2. Rainfall expected across Kerala
-3. Tech industry sees major hiring boost
-
-
----
-
-📁 File Structure
-
-weather_news_dashboard/
-├── weather_news_dashboard.py
-├── README.md
-└── .gitignore (optional)
-
-
----
-
-👤 Author
-
-Hakkim
-BCA Student | Python Learner | Aspiring Full Stack Developer
-GitHub | LinkedIn
-
-
----
-
-💡 Future Improvements
-
-Add a GUI using Tkinter or Flask
-
-Auto-location detection using IP address
-
-Option to toggle °C and °F
-
-5-day weather forecast
+# Main program starts here
+if __name__ == "__main__":
+    main()
